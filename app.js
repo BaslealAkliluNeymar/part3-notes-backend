@@ -5,6 +5,7 @@ const config = require('./utils/config')
 const app = express()
 const userRouter = require('./controller/users')
 const notesRouter = require('./controller/notes')
+const LoginRouter = require('./controller/login')
 const middleware = require('./utils/middleware')
 const MONGODB_URI = config.MONGODB_URI
 
@@ -18,9 +19,11 @@ mongo.connect(MONGODB_URI)
         console.log("Not Connected")
     })
 
+    
 app.use(cors())
 app.use(express.json())
 // app.use(middleware.requestHandler)
+app.use('/api/login',LoginRouter)
 app.use('/api/users',userRouter)
 app.use('/api/notes',notesRouter)
 

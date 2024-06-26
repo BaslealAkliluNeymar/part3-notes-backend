@@ -2,16 +2,19 @@ const mongo = require('mongoose')
 const notesRouter = require('express').Router()
 const Note = require('../models/notes')
 const logger = require('../utils/logger')
+const User = require('../models/user')
 
 notesRouter.get('/', async (request, response) => {
     logger.info('Over Here!')
-    // Note.find({}).then(notes => {
-      
-    // })
-    const notes = await Note.find({})
+    
+    const notes = await Note
+                  .find({})
+                  .populate('userId',{ username:1, name:1 })
     response.json(notes)
+
   })
   
+
 notesRouter.get('/:id', async (request, response, next) => {
   try{
     const note = await Note.findById(request.params.id)
@@ -25,24 +28,20 @@ notesRouter.get('/:id', async (request, response, next) => {
   catch{
     next(error)
   }
-  // Note.findById(request.params.id)
-  //   .then(note => {
-  //     if (note) {
-  //       response.json(note)
-  //     } else {
-  //       response.status(404).end()
-  //     }
-  //   })
-  //   .catch(error => next(error))
 })
   
 notesRouter.post('/',async (request, response, next) => {
   const body = request.body
 
+
+  const user = await User.findById(body.userId)
+
   const note = new Note({
     content: body.content,
     important: body.important || false,
+    userId: user.id
   })
+  
   try
   {
     const savedNote = await note.save()
@@ -51,14 +50,14 @@ notesRouter.post('/',async (request, response, next) => {
   catch(err){
     next(err)
   }
-  // note.save()
-  //   .then(savedNote => {
-  //     response.json(savedNote)
-  //   })
-  //   .catch(error => next(error))
+ 
 })
 
-
+notesRouter.delete('/',async(request, response) =>{
+  await Note.deleteMany({})
+  
+  response.status(204).end()
+})
 
 notesRouter.delete('/:id', async (request, response, next) => {
   try{
@@ -68,17 +67,11 @@ notesRouter.delete('/:id', async (request, response, next) => {
   catch(err){
     next(err)
   }
-  
-  // Note.findByIdAndDelete(request.params.id)
-  //   .then(() => {
-  //     response.status(204).end()
-  //   })
-  //   .catch(error => next(error))
 })
   
 notesRouter.put('/:id', async (request, response, next) => {
   const body = request.body
-
+  
   const note = {
     content: body.content,
     important: body.important,
@@ -90,11 +83,6 @@ notesRouter.put('/:id', async (request, response, next) => {
   catch(err){
     next(err)
   }
-    // Note.findByIdAndUpdate(request.params.id, note, { new: true })
-    //   .then(updatedNote => {
-    //     response.json(updatedNote)
-    //   })
-    //   .catch(error => next(error))
-  })
+})
 
 module.exports = notesRouter

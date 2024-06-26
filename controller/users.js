@@ -6,22 +6,27 @@ const bcrypt = require('bcrypt')
 
 
 userRouter.get('/',async (req,res) =>{
-    const response  = await User.find({}).populate('note',{content:1 , important:1})
-    res.status(200).json(response)
+    const users = await User
+                    .find({})
+                    .populate("note")
+
+
+    res.status(200).json(users)
 })
+
+
+
+// userRouter.delete('/',async (req,res) =>{
+//     await User.deleteMany({})
+//     res.status(204).end()
+// })
 
 
 userRouter.post('/',async (req,res) =>{
     const {username, name, password} = req.body
 
-    
-    const data = await User.find({username:req.body.username})
-    if(data){
-        return res.status(400).json('expected `username` to be unique')
-    }
     const saltRounds = 10;
 
-  // Hash the password with the specified number of salt rounds
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
     const outData = new User({

@@ -31,6 +31,6 @@ userSchema.set('toJSON', {
     }
   })
 
-const userModel = new mongo.model('User',userSchema)
+const User = new mongo.model('User',userSchema)
 
-module.exports = userModel
+module.exports = User
