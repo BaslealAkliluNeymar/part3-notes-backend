@@ -15,10 +15,10 @@ const getTokenFrom = (req,res) =>{
 }
 notesRouter.get('/', async (request, response) => {
     logger.info('Over Here!')
-    
+    console.log(request.token)
     const notes = await Note
                   .find({})
-                  .populate('userId',{ username:1, name:1 })
+                  .populate('userId',{})
     response.json(notes)
 
   })
@@ -39,35 +39,60 @@ notesRouter.get('/:id', async (request, response, next) => {
   }
 })
   
-notesRouter.post('/',async (request, response, next) => {
-  const body = request.body
+notesRouter.post('/', async (req, res) => {
+  const body = req.body
+  const token  = getTokenFrom(req)
 
-  const token = getTokenFrom(request)
-  // console.log(token)
 
   const verified = jwt.verify(token, process.env.SECRET)
-  // console.log(verified)
 
-  if(!verified.id){
-    return response.status(401).json({message:"Invalid Token"})
-  }  
-
+  if(!verified){
+    return res.status(204).json({
+      message:"Wrong password or username"
+    })
+  }
   const user = await User.findById(verified.id)
-
-  const note = new Note({
-    content: body.content,
-    important: body.important || false,
-    userId: user._id
+  const savedNote = new Note({
+    content:body.content,
+    important:body.important  === undefined ? false : body.important,
+    userid:  user._id
   })
   
-  try
-  {
-    const savedNote = await note.save()
-    response.status(201).json(savedNote)
-  }
-  catch(err){
-    next(err)
-  }
+  await savedNote.save()
+  
+  user.note = user.note.concat(savedNote._id)
+
+  await user.save()
+
+  res.status(201).json(user)
+
+
+  // const token = getTokenFrom(request)
+  // console.log(token)
+
+  // const verified = jwt.verify(token, process.env.SECRET)
+  // console.log(verified)
+
+  // if(!verified.id){
+  //   return response.status(401).json({message:"Invalid Token"})
+  // }  
+
+  // const user = await User.findById(verified.id)
+
+  // const note = new Note({
+  //   content: body.content,
+  //   important: body.important || false,
+  //   userId: user._id
+  // })
+  
+  // try
+  // {
+  //   const savedNote = await note.save()
+  //   response.status(201).json(savedNote)
+  // }
+  // catch(err){
+  //   next(err)
+  // }
  
 })
 
