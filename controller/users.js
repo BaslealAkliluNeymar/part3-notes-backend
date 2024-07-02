@@ -23,7 +23,7 @@ userRouter.get('/',async (req,res) =>{
 
 
 userRouter.post('/',async (req,res) =>{
-    const {username, name, password,_id} = req.body
+    const {username, name, password} = req.body
 
 
     const saltRounds = 10;
@@ -36,7 +36,7 @@ userRouter.post('/',async (req,res) =>{
         passwordHash
     })
 
-    console.log(outData)
+
     const savedData = await outData.save()
 
     res.status(201).json(savedData)
